@@ -22,7 +22,7 @@ public class MyPredator extends AbstractWildlifeAgent {
 	 */
 
 	GridPosition preyPosition;
-	int counter = 0;
+	int distanceToPrey = 0;
 	MyEnvironment.MyAction lastAction = null;
 
 	public MyPredator() {
@@ -41,8 +41,6 @@ public class MyPredator extends AbstractWildlifeAgent {
 		GridPosition agentPos = wildlifePerceptions.getAgentPos();
 		System.out.println(agentPos);
 
-		ProbabilityMap probMap = new ProbabilityMap();
-
 		ArrayList<MyEnvironment.MyAction> allActions = new ArrayList<>();
 		allActions.add(MyEnvironment.MyAction.NORTH);
 		allActions.add(MyEnvironment.MyAction.SOUTH);
@@ -53,6 +51,7 @@ public class MyPredator extends AbstractWildlifeAgent {
 		for (GridPosition obs : wildlifePerceptions.getObstacles()) {
 			if (agentPos.getDistanceTo(obs) > 1)
 				continue;
+
 			GridRelativeOrientation relativeOrientation = agentPos.getRelativeOrientation(obs);
 
 			switch (relativeOrientation) {
@@ -77,16 +76,12 @@ public class MyPredator extends AbstractWildlifeAgent {
 			}
 		}
 
-		// save available moves
-
-		// examine which prey is the closest and goes after it
-		// if no prey is visible goes in one directiona
 		MyEnvironment.MyAction chosenAction = MyEnvironment.MyAction.NORTH;
 		double currentBestDistance = Double.POSITIVE_INFINITY;
 
 		for (GridPosition preyPositon : wildlifePerceptions.getNearbyPrey()) {
 			this.preyPosition = preyPositon;
-			counter = 4;
+			distanceToPrey = 4;
 			System.out.println("SEEING PRAY");
 			GridRelativeOrientation relativePos = agentPos.getRelativeOrientation(preyPositon);
 			switch (relativePos) {
@@ -141,8 +136,8 @@ public class MyPredator extends AbstractWildlifeAgent {
 			return chosenAction;
 		} else {
 			//PREY OUT OF RANGE, GO TOWARDS THAT DIRECTION
-			if (counter > 0) {
-				counter -= 1;
+			if (distanceToPrey > 0) {
+				distanceToPrey -= 1;
 				GridRelativeOrientation relativePos = agentPos.getRelativeOrientation(this.preyPosition);
 				System.out.println("SEEN PREY GOING TO LAST KNOWN LOCATION");
 				switch (relativePos) {
