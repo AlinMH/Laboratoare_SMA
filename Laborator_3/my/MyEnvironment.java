@@ -13,6 +13,7 @@ import base.Agent;
 import base.Perceptions;
 import communication.AgentID;
 import communication.AgentMessage;
+import communication.SocialAction;
 import gridworld.GridOrientation;
 import gridworld.GridPosition;
 import hunting.AbstractHuntingEnvironment;
@@ -195,8 +196,7 @@ public class MyEnvironment extends AbstractHuntingEnvironment {
             Map<AgentID, GridPosition> predatorPositions = new HashMap<>();
             for (WildlifeAgentData pred : getNearbyPredators(preyAg.getPosition(), my.MyTester.PREY_RANGE, null))
                 predatorPositions.put(AgentID.getAgentID(pred.getAgent()), pred.getPosition());
-            agentPerceptions.put(preyAg,
-                    new MyPerceptions(preyAg.getPosition(), nearbyObstacles, predatorPositions, null));
+            agentPerceptions.put(preyAg, new MyPerceptions(preyAg.getPosition(), nearbyObstacles, predatorPositions, null));
         }
 
         /*
@@ -209,38 +209,55 @@ public class MyEnvironment extends AbstractHuntingEnvironment {
             for (WildlifeAgentData prey : getNearbyPrey(predAg.getPosition(), MyTester.PREDATOR_RANGE))
                 preyPositions.add(prey.getPosition());
 
-            agentPerceptions.put(predAg, new MyPerceptions(predAg.getPosition(), nearbyObstacles, null, preyPositions));
+            Map<AgentID, GridPosition> predatorPositions = new HashMap<>();
+            for (WildlifeAgentData pred : getNearbyPredators(predAg.getPosition(), MyTester.PREDATOR_RANGE, null))
+                predatorPositions.put(AgentID.getAgentID(pred.getAgent()), pred.getPosition());
+
+            Set<AgentMessage> receivedMessages = AgentMessage.filterMessagesFor(messageBox, AgentID.getAgentID(predAg.getAgent()));
+            agentPerceptions.put(predAg, new MyPerceptions(predAg.getPosition(), nearbyObstacles, predatorPositions, preyPositions, receivedMessages));
         }
 
         // STAGE 2: call response for each agent, in order to obtain desired actions
 
+        messageBox.clear();
         Map<GridAgentData, MyAction> agentActions = new HashMap<>();
         /*
          * TODO: Get actions for all agents.
          */
 
-		for (WildlifeAgentData predAg : getPredatorAgents()) {
-			Agent agent = predAg.getAgent();
-			MyPerceptions perceptions = agentPerceptions.get(predAg);
-			MyAction action = (MyAction) agent.response(perceptions);
-			agentActions.put(predAg, action);
-		}
+        for (WildlifeAgentData predAg : getPredatorAgents()) {
+            Agent agent = predAg.getAgent();
+            MyPerceptions perceptions = agentPerceptions.get(predAg);
+            Action action = agent.response(perceptions);
+            MyAction pAction;
+            if (action instanceof SocialAction) {
+                SocialAction socialAction = (SocialAction) action;
+                pAction = socialAction.getPhysicalAction();
+                Set<AgentMessage> agentMessages = socialAction.getOutgoingMessages();
+                messageBox.addAll(agentMessages);
 
-		for (WildlifeAgentData preyAg : getPreyAgents()) {
-			Agent agent = preyAg.getAgent();
-			MyPerceptions perceptions = agentPerceptions.get(preyAg);
-			MyAction action = (MyAction) agent.response(perceptions);
-			agentActions.put(preyAg, action);
-		}
+            } else {
+                pAction = (MyAction) action;
+            }
+
+            agentActions.put(predAg, pAction);
+        }
+
+        for (WildlifeAgentData preyAg : getPreyAgents()) {
+            Agent agent = preyAg.getAgent();
+            MyPerceptions perceptions = agentPerceptions.get(preyAg);
+            MyAction action = (MyAction) agent.response(perceptions);
+            agentActions.put(preyAg, action);
+        }
 
         // useful printout:
         // System.out.println(
         // "Agent " + preyAg.getAgent().toString() + " at " + preyAg.getPosition() + " wants " + preyAction);
 
         // useful predator agent printout:
-        // System.out.println("Agent " + predAgent.getAgent().toString() + " at " + predAgent.getPosition() + " wants "
-        // + predAction + " detects prey " + preyPositions + " and predators " + predatorPositions
-        // + " and receives messages " + AgentMessage.filterMessagesFor(messageBox, predAgent.getAgent()));
+//         System.out.println("Agent " + predAgent.getAgent().toString() + " at " + predAgent.getPosition() + " wants "
+//         + predAction + " detects prey " + preyPositions + " and predators " + predatorPositions
+//         + " and receives messages " + AgentMessage.filterMessagesFor(messageBox, predAgent.getAgent()));
 
         // STAGE 3: apply the agents' actions in the environment
 

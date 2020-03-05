@@ -2,6 +2,9 @@ package my;
 
 import base.Action;
 import base.Perceptions;
+import communication.AgentID;
+import communication.AgentMessage;
+import communication.SocialAction;
 import gridworld.GridPosition;
 import gridworld.GridRelativeOrientation;
 import gridworld.ProbabilityMap;
@@ -10,6 +13,8 @@ import hunting.WildlifeAgentType;
 
 import java.util.ArrayList;
 import java.lang.Math;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Implementation for predator agents.
@@ -21,12 +26,14 @@ public class MyPredator extends AbstractWildlifeAgent {
 	 * Default constructor.
 	 */
 
-	GridPosition preyPosition;
+	GridPosition preyPosition = null;
 	int distanceToPrey = 0;
 	MyEnvironment.MyAction lastAction = null;
+	private HashSet<AgentID> knownPredators;
 
 	public MyPredator() {
 		super(WildlifeAgentType.PREDATOR);
+		knownPredators = new HashSet<>();
 	}
 
 	public double getDistance(GridPosition pos1, GridPosition pos2) {
@@ -38,6 +45,13 @@ public class MyPredator extends AbstractWildlifeAgent {
 	@Override
 	public Action response(Perceptions perceptions) {
 		MyEnvironment.MyPerceptions wildlifePerceptions = (MyEnvironment.MyPerceptions) perceptions;
+		Set<AgentMessage> receivedMessages = wildlifePerceptions.getMessages();
+
+		for (AgentMessage message : receivedMessages) {
+			if (preyPosition == null)
+				preyPosition = (GridPosition)message.getContent();
+		}
+
 		GridPosition agentPos = wildlifePerceptions.getAgentPos();
 
 		ArrayList<MyEnvironment.MyAction> allActions = new ArrayList<>();
@@ -77,6 +91,7 @@ public class MyPredator extends AbstractWildlifeAgent {
 
 		MyEnvironment.MyAction chosenAction = MyEnvironment.MyAction.NORTH;
 		double currentBestDistance = Double.POSITIVE_INFINITY;
+		knownPredators.addAll(wildlifePerceptions.getNearbyPredators().keySet());
 
 		for (GridPosition preyPositon : wildlifePerceptions.getNearbyPrey()) {
 			this.preyPosition = preyPositon;
@@ -128,9 +143,19 @@ public class MyPredator extends AbstractWildlifeAgent {
 					break;
 			}
 		}
+
+		if (preyPosition != null) {
+			SocialAction socialAction = new SocialAction(lastAction);
+			for (AgentID knowPredator : knownPredators) {
+				AgentMessage message = new AgentMessage(AgentID.getAgentID(this), knowPredator, preyPosition);
+				socialAction.addOutgoingMessage(message);
+			}
+		}
+
 		if (currentBestDistance != Double.POSITIVE_INFINITY) {
 			lastAction = chosenAction;
-			return chosenAction;
+			return new SocialAction(chosenAction);
+
 		} else {
 			if (distanceToPrey > 0) {
 				distanceToPrey -= 1;
@@ -173,19 +198,19 @@ public class MyPredator extends AbstractWildlifeAgent {
 						break;
 				}
 				lastAction = chosenAction;
-				return chosenAction;
+				return new SocialAction(chosenAction);
 			}
-
 		}
+
 		if (lastAction != null) {
 			if (allActions.contains(lastAction)) {
-				return lastAction;
+				return new SocialAction(lastAction);
 			}
 		}
 
 		int randomIndex = (int) (Math.random() * allActions.size());
 		lastAction = allActions.get(randomIndex);
-		return lastAction;
 
+		return new SocialAction(lastAction);
 	}
 }
