@@ -39,7 +39,6 @@ public class MyPredator extends AbstractWildlifeAgent {
 	public Action response(Perceptions perceptions) {
 		MyEnvironment.MyPerceptions wildlifePerceptions = (MyEnvironment.MyPerceptions) perceptions;
 		GridPosition agentPos = wildlifePerceptions.getAgentPos();
-		System.out.println(agentPos);
 
 		ArrayList<MyEnvironment.MyAction> allActions = new ArrayList<>();
 		allActions.add(MyEnvironment.MyAction.NORTH);
@@ -82,7 +81,6 @@ public class MyPredator extends AbstractWildlifeAgent {
 		for (GridPosition preyPositon : wildlifePerceptions.getNearbyPrey()) {
 			this.preyPosition = preyPositon;
 			distanceToPrey = 4;
-			System.out.println("SEEING PRAY");
 			GridRelativeOrientation relativePos = agentPos.getRelativeOrientation(preyPositon);
 			switch (relativePos) {
 				case FRONT:
@@ -130,16 +128,13 @@ public class MyPredator extends AbstractWildlifeAgent {
 					break;
 			}
 		}
-		//SEEN PREY GO TOWARDS IT
 		if (currentBestDistance != Double.POSITIVE_INFINITY) {
 			lastAction = chosenAction;
 			return chosenAction;
 		} else {
-			//PREY OUT OF RANGE, GO TOWARDS THAT DIRECTION
 			if (distanceToPrey > 0) {
 				distanceToPrey -= 1;
 				GridRelativeOrientation relativePos = agentPos.getRelativeOrientation(this.preyPosition);
-				System.out.println("SEEN PREY GOING TO LAST KNOWN LOCATION");
 				switch (relativePos) {
 					case FRONT:
 						if (getDistance(agentPos, this.preyPosition) < currentBestDistance) {
@@ -182,7 +177,6 @@ public class MyPredator extends AbstractWildlifeAgent {
 			}
 
 		}
-		// DO NOT KNOW WHERE PRAY IS, GOING SAME DIRECTION UNTILL WALL HIT
 		if (lastAction != null) {
 			if (allActions.contains(lastAction)) {
 				return lastAction;
