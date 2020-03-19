@@ -28,12 +28,12 @@ public class MyTester extends Tester
 	/**
 	 * The place to get the tests from.
 	 */
-	protected static final String	TEST_SUITE	= "tests/0e-large/";
+	protected static final String	TEST_SUITE	= "tests/0d2/";
 	
 	/**
 	 * The probability for the environment to change dynamically at one step. Between 0 and 1.
 	 */
-	public static final float		DYNAMICITY	= .5f;
+	public static final float		DYNAMICITY	= 0;
 	
 	/**
 	 * The name of the agent.
@@ -58,7 +58,7 @@ public class MyTester extends Tester
 	 * 
 	 * @param testSuite
 	 *            - the path for test files.
-	 * 
+	 *
 	 * @throws FileNotFoundException
 	 *             - if world state file not found.
 	 * @throws IOException
