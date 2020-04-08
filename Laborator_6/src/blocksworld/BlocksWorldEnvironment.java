@@ -376,7 +376,6 @@ public abstract class BlocksWorldEnvironment implements Environment
 				else
 				{
 					System.out.println("Cannot move to station " + act.getArgument().toString() + ".");
-					ag.setPreviousActionFailed();
 				}
 				break;
 			case LOCK:
@@ -392,6 +391,8 @@ public abstract class BlocksWorldEnvironment implements Environment
 				nCompleted++;
 				break;
 			case NONE:
+				System.out.println("Conflicting: " + ag.getAgent().toString() + " do NONE.");
+				ag.setPreviousActionFailed();
 				break;
 			default:
 				throw new RuntimeException("Should not be here");

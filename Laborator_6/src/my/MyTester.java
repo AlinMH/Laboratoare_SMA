@@ -23,7 +23,7 @@ public class MyTester extends Tester
 	/**
 	 * Delay between two agent steps. In milliseconds.
 	 */
-	protected static final int		STEP_DELAY						= 500;
+	protected static final int		STEP_DELAY						= 1;
 	
 	/**
 	 * number of teams (may be single-agent teams); if only one team, sf.tyxt will be used; otherwise, sfi.txt will be
@@ -83,7 +83,7 @@ public class MyTester extends Tester
 	{
 		try (InputStream input = new FileInputStream(testSuite + SI + EXT))
 		{
-			environment = new DynamicEnvironment(new BlocksWorld(input));
+			environment = new MyBlocksWorldEnvironment(new BlocksWorld(input));
 		}
 	}
 	
