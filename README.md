@@ -1,1 +1,1 @@
-# Laboratoare_SMA
+# Multi Agent Systems Laboratories ACS 2020
